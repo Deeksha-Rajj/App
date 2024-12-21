@@ -1,0 +1,103 @@
+<!-- templates/upload_task.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Task Screenshot</title>
+    <style>
+        .drop-zone {
+            width: 300px;
+            height: 200px;
+            border: 2px dashed #ccc;
+            text-align: center;
+            padding: 20px;
+            margin: 20px;
+        }
+        .drop-zone.hover {
+            background-color: #f0f0f0;
+        }
+        .file-list {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Upload Screenshot for Completed Task</h2>
+
+    <div id="drop-zone" class="drop-zone">
+        <p>Drag and Drop Screenshot Here</p>
+        <input type="file" id="file-input" style="display:none;" />
+    </div>
+
+    <div id="file-list" class="file-list"></div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+
+        // Handle drag over
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('hover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('hover');
+        });
+
+        // Handle file drop
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('hover');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        // Handle file input selection
+        fileInput.addEventListener('change', () => {
+            const files = fileInput.files;
+            handleFiles(files);
+        });
+
+        // Open file input dialog on drop zone click
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const listItem = document.createElement('div');
+                listItem.textContent = file.name;
+                fileList.appendChild(listItem);
+
+                // Prepare the file for upload
+                const formData = new FormData();
+                formData.append('screenshot', file);
+                formData.append('user', 1);  // Example user ID, replace with actual user
+                formData.append('app', 1);   // Example app ID, replace with the app selected
+
+                // Send the file via fetch API
+                fetch('/api/tasks/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Authorization': 'Bearer ' + 'your_token_here'  // Replace with JWT token
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('File uploaded successfully', data);
+                })
+                .catch(error => {
+                    console.error('Error uploading file:', error);
+                });
+            }
+        }
+    </script>
+
+</body>
+</html>
